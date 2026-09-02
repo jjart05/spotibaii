@@ -11,7 +11,8 @@
     "dev": "concurrently -n server,client -c green,cyan \"npm run dev -w server\" \"npm run dev -w client\"",
     "start": "npm run build -w client && npm run start -w server",
     "build": "npm run build -w client",
-    "export-library": "node server/scripts/export-library.js"
+    "export-library": "node server/scripts/export-library.js",
+    "publish-library": "node server/scripts/publish-library.js"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"

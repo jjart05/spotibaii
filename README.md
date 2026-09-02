@@ -67,35 +67,19 @@ This builds the React app and serves it from Express. Set `PORT` if you need a s
 
 Vercel cannot keep new uploads on its own disk. To **publish the songs you already uploaded on your PC**, copy them into the website files, then push.
 
-1. Run the app on your computer and upload your music:
+1. Upload on your PC: `npm run dev` → **Upload Music**
+2. Put those songs into the website and commit:
 
 ```bash
-npm run dev
-```
-
-Open http://localhost:3000 → **Upload Music**.
-
-2. Export that library into the site:
-
-```bash
-npm run export-library
-```
-
-This fills `client/public/library/` with your MP3s, covers, and `catalog.json`.
-
-3. Save and publish:
-
-```bash
-git add client/public/library
-git commit -m "Add my music library to the site."
+npm run publish-library
 git push
 ```
 
-4. Deploy on Vercel or Netlify from GitHub. The live site will already contain those songs.
+3. Connect the GitHub repo to Vercel (import `jjart05/SpotiBai`). Every push updates the live site. **Other visitors will see the same songs.**
 
 Do this again whenever you add new tracks locally. GitHub rejects files over 100 MB.
 
-If you only upload on the live Vercel URL (without export), those files stay in that browser and will not appear for other people.
+Do **not** upload only on the live Vercel page. Those files stay in your browser and other people will not see them.
 
 ## Optional: self-host (Fly.io)
 

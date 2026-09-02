@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --accent: 31 224 122;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #000;
+  color: #fff;
+  font-family: "Plus Jakarta Sans", Inter, system-ui, sans-serif;
+  overflow: hidden;
+}
+
+body.theme-light {
+  background: #f4f4f4;
+  color: #111;
+}
+
+.theme-light .bg-shell { background-color: #e7e7e7; }
+.theme-light .bg-canvas { background-color: #f6f6f6; }
+.theme-light .bg-panel { background-color: #fff; }
+.theme-light .text-white { color: #111827; }
+.theme-light .text-muted { color: #4b5563; }
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #3e3e3e transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #3e3e3e;
+  border-radius: 99px;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible {
+  outline: 2px solid rgb(var(--accent));
+  outline-offset: 2px;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-up {
+  animation: fade-up .35s ease both;
+}

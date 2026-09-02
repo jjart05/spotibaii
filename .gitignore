@@ -1,0 +1,12 @@
+node_modules/
+dist/
+server/data/
+server/uploads/songs/*
+server/uploads/covers/*
+!server/uploads/songs/.gitkeep
+!server/uploads/covers/.gitkeep
+*.log
+.DS_Store
+.env
+.vscode/
+.idea/

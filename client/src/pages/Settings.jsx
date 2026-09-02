@@ -85,7 +85,7 @@ export default function Settings() {
         </div>
         {storageMode === 'browser' && (
           <p className="mt-3 text-xs text-faint">
-            On Vercel or Netlify, uploads are saved in this browser so you can play them here. They are not stored on Vercel’s servers, and they will not appear on another phone or a cleared browser profile.
+            Songs you exported with npm run export-library are part of the website for everyone. Extra uploads on this live URL stay only in this browser until you export and push again.
           </p>
         )}
       </section>

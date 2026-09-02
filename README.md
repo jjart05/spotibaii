@@ -63,30 +63,39 @@ npm start
 
 This builds the React app and serves it from Express. Set `PORT` if you need a specific port (default `3001`).
 
-## Deploy on Vercel or Netlify
+## Deploy on Vercel or Netlify (with your music already there)
 
-Vercel and Netlify can host the **website**. They cannot keep MP3s on their own disks, so Spotibai stores **your uploads in this browser** (IndexedDB) when no local API is present.
+Vercel cannot keep new uploads on its own disk. To **publish the songs you already uploaded on your PC**, copy them into the website files, then push.
 
-That means:
+1. Run the app on your computer and upload your music:
 
-- Import the GitHub repo and deploy. **Upload Music** still works on the live site.
-- Your songs stay on the device/browser you used to upload them.
-- Clearing site data, another browser, or another device starts with an empty library.
+```bash
+npm run dev
+```
 
-### Vercel
+Open http://localhost:3000 → **Upload Music**.
 
-1. Open [vercel.com/new](https://vercel.com/new) and import `jjart05/SpotiBai`.
-2. Leave the defaults from `vercel.json` (build `npm run build`, output `client/dist`).
-3. Deploy, open the URL, and use **Upload Music**.
+2. Export that library into the site:
 
-### Netlify
+```bash
+npm run export-library
+```
 
-1. Add the repo at [app.netlify.com](https://app.netlify.com) (build command and publish folder are in `netlify.toml`).
-2. Deploy, then upload from the live site.
+This fills `client/public/library/` with your MP3s, covers, and `catalog.json`.
 
-### Local app with files on disk
+3. Save and publish:
 
-`npm run dev` still uses the Express + SQLite server. Those files are separate from the Vercel/Netlify browser library.
+```bash
+git add client/public/library
+git commit -m "Add my music library to the site."
+git push
+```
+
+4. Deploy on Vercel or Netlify from GitHub. The live site will already contain those songs.
+
+Do this again whenever you add new tracks locally. GitHub rejects files over 100 MB.
+
+If you only upload on the live Vercel URL (without export), those files stay in that browser and will not appear for other people.
 
 ## Optional: self-host (Fly.io)
 

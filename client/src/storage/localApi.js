@@ -1,3 +1,5 @@
+import { loadCatalog, presentCatalogSong } from './catalog.js';
+
 const DB_NAME = 'spotibai';
 const DB_VERSION = 1;
 
@@ -86,8 +88,26 @@ function presentSong(song, likedSet) {
 }
 
 async function likedIds() {
+  const catalog = await loadCatalog();
   const favs = await all('favorites');
-  return new Set(favs.map((f) => f.songId));
+  return new Set([...catalog.favorites, ...favs.map((f) => f.songId)]);
+}
+
+async function mergedSongList(sort) {
+  const catalog = await loadCatalog();
+  const liked = await likedIds();
+  const bundled = catalog.songs.map((s) => presentCatalogSong(s, liked));
+  const local = await presentSongs(await all('songs'));
+  const bundledIds = new Set(bundled.map((s) => s.id));
+  const extra = local.filter((s) => !bundledIds.has(s.id));
+  return sortSongs([...bundled, ...extra], sort);
+}
+
+async function nextId(kind) {
+  const catalog = await loadCatalog();
+  const rows = await all(kind);
+  const catalogIds = kind === 'songs' ? catalog.songs.map((s) => s.id) : catalog.playlists.map((p) => p.id);
+  return Math.max(0, ...catalogIds, ...rows.map((r) => r.id || 0)) + 1;
 }
 
 async function presentSongs(songs) {
@@ -128,10 +148,9 @@ async function playlistWithSongs(playlist) {
   const links = (await all('playlistSongs'))
     .filter((l) => l.playlistId === playlist.id)
     .sort((a, b) => a.position - b.position);
-  const songRows = await all('songs');
-  const byId = new Map(songRows.map((s) => [s.id, s]));
-  const liked = await likedIds();
-  const songs = links.map((l) => presentSong(byId.get(l.songId), liked)).filter(Boolean);
+  const merged = await mergedSongList();
+  const byId = new Map(merged.map((s) => [s.id, s]));
+  const songs = links.map((l) => byId.get(l.songId)).filter(Boolean);
   return {
     ...playlist,
     coverBlob: undefined,
@@ -145,7 +164,7 @@ const lastPlay = new Map();
 
 export const localApi = {
   async home() {
-    const songs = sortSongs(await presentSongs(await all('songs')), 'recent');
+    const songs = await mergedSongList('recent');
     const popular = sortSongs(songs, 'played').slice(0, 12);
     const recent = songs.slice(0, 12);
     const recentlyPlayed = (await this.recent()).slice(0, 12);
@@ -177,10 +196,11 @@ export const localApi = {
   },
 
   async stats() {
-    const songs = await all('songs');
-    const playlists = await all('playlists');
-    const favorites = await all('favorites');
-    const storageBytes = songs.reduce(
+    const songs = await mergedSongList();
+    const playlists = await this.playlists();
+    const favorites = await this.favorites();
+    const localSongs = await all('songs');
+    const storageBytes = localSongs.reduce(
       (sum, s) => sum + (s.audioBlob?.size || 0) + (s.coverBlob?.size || 0),
       0,
     );
@@ -188,15 +208,14 @@ export const localApi = {
   },
 
   async songs(sort) {
-    return sortSongs(await presentSongs(await all('songs')), sort);
+    return mergedSongList(sort);
   },
 
   async song(id) {
-    const db = await openDb();
-    const row = await request(db.transaction('songs').objectStore('songs').get(Number(id)));
-    if (!row) throw new Error('Song not found.');
-    const liked = await likedIds();
-    return presentSong(row, liked);
+    const songs = await mergedSongList();
+    const found = songs.find((s) => s.id === Number(id));
+    if (!found) throw new Error('Song not found.');
+    return found;
   },
 
   async search(q) {
@@ -242,6 +261,12 @@ export const localApi = {
 
   async deleteSong(id) {
     const songId = Number(id);
+    const catalog = await loadCatalog();
+    if (catalog.songs.some((s) => s.id === songId)) {
+      throw new Error(
+        'This song is in the published library. Delete it in npm run dev on your PC, then run npm run export-library and git push.',
+      );
+    }
     const db = await openDb();
     const tx = db.transaction(['songs', 'favorites', 'playlistSongs', 'recent'], 'readwrite');
     tx.objectStore('songs').delete(songId);
@@ -311,10 +336,8 @@ export const localApi = {
 
   async favorites() {
     const liked = await likedIds();
-    const songs = await presentSongs(await all('songs'));
-    const favMeta = await all('favorites');
-    favMeta.sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
-    return favMeta.map((f) => songs.find((s) => s.id === f.songId)).filter(Boolean).map((s) => ({ ...s, liked: true || liked.has(s.id) }));
+    const songs = await mergedSongList();
+    return songs.filter((s) => liked.has(s.id)).map((s) => ({ ...s, liked: true }));
   },
 
   async like(id) {
@@ -334,16 +357,34 @@ export const localApi = {
   },
 
   async playlists() {
+    const catalog = await loadCatalog();
+    const merged = await mergedSongList();
+    const byId = new Map(merged.map((s) => [s.id, s]));
+    const bundled = catalog.playlists.map((p) => {
+      const songs = (p.songIds || []).map((sid) => byId.get(sid)).filter(Boolean);
+      return {
+        id: p.id,
+        name: p.name,
+        description: p.description || '',
+        created_at: p.created_at,
+        coverUrl: p.coverFile ? `/library/covers/${encodeURIComponent(p.coverFile)}` : songs[0]?.coverUrl || null,
+        songs,
+        trackCount: songs.length,
+        bundled: true,
+      };
+    });
     const rows = await all('playlists');
     rows.sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
-    return Promise.all(rows.map(playlistWithSongs));
+    const local = await Promise.all(rows.map(playlistWithSongs));
+    const bundledIds = new Set(bundled.map((p) => p.id));
+    return [...bundled, ...local.filter((p) => !bundledIds.has(p.id))];
   },
 
   async playlist(id) {
-    const db = await openDb();
-    const row = await request(db.transaction('playlists').objectStore('playlists').get(Number(id)));
-    if (!row) throw new Error('Playlist not found.');
-    return playlistWithSongs(row);
+    const allPl = await this.playlists();
+    const found = allPl.find((p) => p.id === Number(id));
+    if (!found) throw new Error('Playlist not found.');
+    return found;
   },
 
   async createPlaylist(form) {
@@ -351,6 +392,7 @@ export const localApi = {
     if (!name) throw new Error('Playlist could not be created.');
     const cover = form.get('cover');
     const record = {
+      id: await nextId('playlists'),
       name,
       description: String(form.get('description') || '').trim(),
       coverBlob: cover instanceof File && cover.size ? cover : null,
@@ -358,7 +400,7 @@ export const localApi = {
     };
     const db = await openDb();
     const tx = db.transaction('playlists', 'readwrite');
-    const id = await request(tx.objectStore('playlists').add(record));
+    const id = await request(tx.objectStore('playlists').put(record));
     await txDone(tx);
     return this.playlist(id);
   },
@@ -436,28 +478,39 @@ export const localApi = {
       ids.push(ev.songId);
       if (ids.length >= 40) break;
     }
-    const songs = await presentSongs(await all('songs'));
+    const catalog = await loadCatalog();
+    const songs = await mergedSongList();
     const byId = new Map(songs.map((s) => [s.id, s]));
-    return ids.map((id) => byId.get(id)).filter(Boolean);
+    const fromCatalog = catalog.recentlyPlayed.map((rid) => byId.get(rid)).filter(Boolean);
+    const fromEvents = ids.map((rid) => byId.get(rid)).filter(Boolean);
+    const seenRecent = new Set();
+    const mergedRecent = [];
+    for (const song of [...fromEvents, ...fromCatalog]) {
+      if (seenRecent.has(song.id)) continue;
+      seenRecent.add(song.id);
+      mergedRecent.push(song);
+    }
+    return mergedRecent;
   },
 
   async recordPlay(songId) {
     const id = Number(songId);
+    const presented = await this.song(id);
     const now = Date.now();
     const prev = lastPlay.get(id) || 0;
-    const db = await openDb();
-    const song = await request(db.transaction('songs').objectStore('songs').get(id));
-    if (!song) throw new Error('Song not found.');
     if (now - prev > 30_000) {
       lastPlay.set(id, now);
-      song.play_count = (song.play_count || 0) + 1;
-      const tx = db.transaction(['songs', 'recent'], 'readwrite');
-      tx.objectStore('songs').put(song);
+      const db = await openDb();
+      const row = await request(db.transaction('songs').objectStore('songs').get(id));
+      const tx = db.transaction(row ? ['songs', 'recent'] : ['recent'], 'readwrite');
+      if (row) {
+        row.play_count = (row.play_count || 0) + 1;
+        tx.objectStore('songs').put(row);
+      }
       tx.objectStore('recent').add({ songId: id, played_at: new Date().toISOString() });
       await txDone(tx);
     }
-    const liked = await likedIds();
-    return presentSong(song, liked);
+    return presented;
   },
 
   async upload(form, onProgress) {
@@ -473,6 +526,7 @@ export const localApi = {
     onProgress?.(55);
     const stem = audio.name.replace(/\.[^.]+$/, '');
     const record = {
+      id: await nextId('songs'),
       title: String(form.get('title') || stem || 'Untitled').trim(),
       artist: String(form.get('artist') || 'Unknown Artist').trim(),
       album: String(form.get('album') || 'Unknown Album').trim(),
@@ -486,7 +540,7 @@ export const localApi = {
     try {
       const db = await openDb();
       const tx = db.transaction('songs', 'readwrite');
-      const id = await request(tx.objectStore('songs').add(record));
+      const id = await request(tx.objectStore('songs').put(record));
       await txDone(tx);
       onProgress?.(100);
       return this.song(id);

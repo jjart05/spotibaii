@@ -1,0 +1,110 @@
+{
+  "exportedAt": "2026-09-02T06:12:21.504Z",
+  "songs": [
+    {
+      "id": 2,
+      "title": "Wait A Minute",
+      "artist": "Bai-J",
+      "album": "Bai na Bai",
+      "genre": "Unknown",
+      "duration": 61.38775510204081,
+      "play_count": 2,
+      "created_at": "2026-09-02 05:13:00",
+      "audioFile": "c012d665-041e-4405-903b-e379c526bd6d.mp3",
+      "coverFile": "d8f6cd91-c435-47da-9f92-6fc1d6101a01.png"
+    },
+    {
+      "id": 3,
+      "title": "You're Not Alone",
+      "artist": "Michael Bai",
+      "album": "Unknown Album",
+      "genre": "Unknown",
+      "duration": 32.23510204081633,
+      "play_count": 2,
+      "created_at": "2026-09-02 05:15:49",
+      "audioFile": "d976db7e-d7f6-439d-89e2-86cb25b926be.mp3",
+      "coverFile": "f15e735e-673d-4d64-946b-aed8f4ca6654.png"
+    },
+    {
+      "id": 4,
+      "title": "Same Ground",
+      "artist": "Wala na Bai",
+      "album": "Unknown Album",
+      "genre": "Unknown",
+      "duration": 24.47673469387755,
+      "play_count": 1,
+      "created_at": "2026-09-02 05:23:00",
+      "audioFile": "27006026-fdd1-4a6f-b222-a3bf13f6ff1d.mp3",
+      "coverFile": "0f4646db-63ff-4a9f-bf33-871baab50824.png"
+    },
+    {
+      "id": 7,
+      "title": "Ikaw Parin",
+      "artist": "April Bai",
+      "album": "Unknown Album",
+      "genre": "Unknown",
+      "duration": 40.41142857142857,
+      "play_count": 1,
+      "created_at": "2026-09-02 05:29:35",
+      "audioFile": "690ce473-31e7-40b9-95f3-d251d1c00da0.mp3",
+      "coverFile": "955db352-2587-4c78-9233-976ffc3d2043.png"
+    },
+    {
+      "id": 8,
+      "title": "Sa Aking Puso",
+      "artist": "OG Bai",
+      "album": "Unknown Album",
+      "genre": "Unknown",
+      "duration": 45.63591836734694,
+      "play_count": 0,
+      "created_at": "2026-09-02 05:30:48",
+      "audioFile": "6caf14b0-684f-422b-a4a4-5765a6779d6a.mp3",
+      "coverFile": "d6c48431-6f2e-41c5-bd32-74ca7812e8c0.png"
+    },
+    {
+      "id": 9,
+      "title": "Ikaw",
+      "artist": "Robai",
+      "album": "Unknown Album",
+      "genre": "Unknown",
+      "duration": 17.162448979591836,
+      "play_count": 0,
+      "created_at": "2026-09-02 05:32:15",
+      "audioFile": "8ff4d052-8d4e-4841-afbb-f353444e0587.mp3",
+      "coverFile": "451a1dd0-644c-409a-934e-fe4e060924dc.png"
+    },
+    {
+      "id": 10,
+      "title": "Drift Star",
+      "artist": "Unknown Artist",
+      "album": "Unknown Album",
+      "genre": "Unknown",
+      "duration": 87.37959183673469,
+      "play_count": 1,
+      "created_at": "2026-09-02 05:34:23",
+      "audioFile": "5247eb30-a6b9-403b-9729-26df6afc56ba.mp3",
+      "coverFile": "01f0c2d2-9842-4609-9742-f3424d84d42b.png"
+    },
+    {
+      "id": 11,
+      "title": "Ako Pilipino",
+      "artist": "Naunsa ka Bai",
+      "album": "Unknown Album",
+      "genre": "Unknown",
+      "duration": 59.115102040816325,
+      "play_count": 0,
+      "created_at": "2026-09-02 05:36:21",
+      "audioFile": "e490c374-deb2-4400-8a88-a20c41dd0e4c.mp3",
+      "coverFile": "fc0f3d32-af98-4101-8bad-06f049704567.png"
+    }
+  ],
+  "playlists": [],
+  "favorites": [],
+  "recentlyPlayed": [
+    10,
+    7,
+    3,
+    4,
+    2
+  ]
+}

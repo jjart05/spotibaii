@@ -3,6 +3,12 @@
   publish = "client/dist"
 
 [[redirects]]
+  from = "/library/*"
+  to = "/library/:splat"
+  status = 200
+  force = false
+
+[[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200

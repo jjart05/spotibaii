@@ -4,7 +4,8 @@ export async function loadCatalog() {
   if (cached) return cached;
   try {
     const res = await fetch('/library/catalog.json', { cache: 'no-store' });
-    if (!res.ok) {
+    const type = res.headers.get('content-type') || '';
+    if (!res.ok || type.includes('text/html')) {
       cached = emptyCatalog();
       return cached;
     }

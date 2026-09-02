@@ -1,3 +1,5 @@
+import { localApi } from '../storage/localApi.js';
+
 async function request(path, options = {}) {
   const res = await fetch(path, options);
   const data = await res.json().catch(() => ({}));
@@ -5,7 +7,7 @@ async function request(path, options = {}) {
   return data;
 }
 
-export const api = {
+const serverApi = {
   home: () => request('/api/home'),
   stats: () => request('/api/stats'),
   songs: (sort) => request(`/api/songs${sort ? `?sort=${sort}` : ''}`),
@@ -65,3 +67,40 @@ export const api = {
       xhr.send(form);
     }),
 };
+
+let resolved;
+
+async function hasServer() {
+  try {
+    const res = await fetch('/api/home', { headers: { Accept: 'application/json' } });
+    const type = res.headers.get('content-type') || '';
+    return res.ok && type.includes('application/json');
+  } catch {
+    return false;
+  }
+}
+
+async function backend() {
+  if (!resolved) {
+    resolved = (await hasServer()) ? serverApi : localApi;
+  }
+  return resolved;
+}
+
+export async function getStorageMode() {
+  const b = await backend();
+  return b === localApi ? 'browser' : 'server';
+}
+
+export const api = new Proxy(
+  {},
+  {
+    get(_target, prop) {
+      return async (...args) => {
+        const b = await backend();
+        if (typeof b[prop] !== 'function') throw new Error('Request failed.');
+        return b[prop](...args);
+      };
+    },
+  },
+);

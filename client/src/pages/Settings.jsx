@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react';
-import { api } from '../services/api.js';
+import { api, getStorageMode } from '../services/api.js';
 import { useLibrary } from '../context/LibraryContext.jsx';
 import { formatBytes } from '../utils/format.js';
 
 export default function Settings() {
   const { settings, setSettings } = useLibrary();
   const [stats, setStats] = useState(null);
+  const [storageMode, setStorageMode] = useState(null);
 
   useEffect(() => {
     api.stats().then(setStats);
+    getStorageMode().then(setStorageMode);
   }, []);
 
   function patch(next) {
@@ -72,11 +74,20 @@ export default function Settings() {
       <section className="mt-8">
         <h2 className="mb-3 font-bold">Storage</h2>
         <div className="space-y-2 rounded-lg bg-panel px-4 py-4 text-sm">
+          <div className="flex justify-between">
+            <span>Library location</span>
+            <span>{storageMode === 'browser' ? 'This browser' : storageMode === 'server' ? 'This computer (server)' : '—'}</span>
+          </div>
           <div className="flex justify-between"><span>Songs</span><span>{stats?.songs ?? '—'}</span></div>
           <div className="flex justify-between"><span>Playlists</span><span>{stats?.playlists ?? '—'}</span></div>
           <div className="flex justify-between"><span>Liked songs</span><span>{stats?.favorites ?? '—'}</span></div>
           <div className="flex justify-between"><span>Total storage used</span><span>{stats ? formatBytes(stats.storageBytes) : '—'}</span></div>
         </div>
+        {storageMode === 'browser' && (
+          <p className="mt-3 text-xs text-faint">
+            On Vercel or Netlify, uploads are saved in this browser so you can play them here. They are not stored on Vercel’s servers, and they will not appear on another phone or a cleared browser profile.
+          </p>
+        )}
       </section>
     </div>
   );

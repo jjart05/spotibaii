@@ -63,11 +63,34 @@ npm start
 
 This builds the React app and serves it from Express. Set `PORT` if you need a specific port (default `3001`).
 
+## Deploy on Vercel or Netlify
+
+Vercel and Netlify can host the **website**. They cannot keep MP3s on their own disks, so Spotibai stores **your uploads in this browser** (IndexedDB) when no local API is present.
+
+That means:
+
+- Import the GitHub repo and deploy. **Upload Music** still works on the live site.
+- Your songs stay on the device/browser you used to upload them.
+- Clearing site data, another browser, or another device starts with an empty library.
+
+### Vercel
+
+1. Open [vercel.com/new](https://vercel.com/new) and import `jjart05/SpotiBai`.
+2. Leave the defaults from `vercel.json` (build `npm run build`, output `client/dist`).
+3. Deploy, open the URL, and use **Upload Music**.
+
+### Netlify
+
+1. Add the repo at [app.netlify.com](https://app.netlify.com) (build command and publish folder are in `netlify.toml`).
+2. Deploy, then upload from the live site.
+
+### Local app with files on disk
+
+`npm run dev` still uses the Express + SQLite server. Those files are separate from the Vercel/Netlify browser library.
+
 ## Optional: self-host (Fly.io)
 
-Skip this unless you want a public website. Day-to-day use is local (`npm run dev`). Netlify and Vercel cannot store uploads.
-
-Spotibai needs a real server and a disk (SQLite + uploaded audio). **Fly.io** can do that.
+Use this only if you want one shared library on a real server disk. Day-to-day and Vercel/Netlify use the options above.
 
 1. Install the [Fly CLI](https://fly.io/docs/flyctl/install/) and create a Fly account.
 2. In the project root:

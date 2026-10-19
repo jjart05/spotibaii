@@ -49,7 +49,7 @@ export function ContextMenu({ song, list, x, y, onClose }) {
   return (
     <div
       ref={ref}
-      className="fixed z-[90] min-w-[220px] overflow-hidden rounded-md bg-[#282828] py-1 shadow-card"
+      className="fixed z-[90] min-w-[220px] overflow-hidden rounded-xl border border-line bg-panel py-1 shadow-card"
       style={{ left: pos.x, top: pos.y }}
       onClick={(e) => e.stopPropagation()}
     >

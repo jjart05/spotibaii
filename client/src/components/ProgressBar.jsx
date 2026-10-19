@@ -49,7 +49,7 @@ export function ProgressBar() {
       <span className="w-10 text-right tabular-nums">{formatTime(progress)}</span>
       <div
         ref={barRef}
-        className="group relative h-3 flex-1 cursor-pointer py-1"
+        className="group relative h-4 flex-1 cursor-pointer"
         onMouseDown={start}
         onTouchStart={start}
         onMouseMove={(e) => {
@@ -69,16 +69,19 @@ export function ProgressBar() {
           if (e.key === 'ArrowLeft') seek(progress - 5);
         }}
       >
-        <div className="absolute inset-y-[7px] left-0 right-0 rounded-full bg-white/20">
-          <div className="h-full rounded-full bg-white group-hover:bg-accent" style={{ width: `${ratio * 100}%` }} />
+        <div className="neo-progress absolute left-0 right-0 top-1/2 h-1.5 -translate-y-1/2 overflow-hidden transition-[height] group-hover:h-2">
+          <div
+            className="h-full rounded-full bg-ink group-hover:bg-accent"
+            style={{ width: `${Math.min(Math.max(ratio, 0), 1) * 100}%` }}
+          />
         </div>
         <div
-          className="absolute top-1/2 h-3 w-3 -translate-y-1/2 rounded-full bg-white opacity-0 group-hover:opacity-100"
-          style={{ left: `calc(${ratio * 100}% - 6px)` }}
+          className="neo-btn absolute top-1/2 h-3.5 w-3.5 -translate-y-1/2 bg-ink opacity-0 transition-opacity group-hover:opacity-100"
+          style={{ left: `calc(${Math.min(Math.max(ratio, 0), 1) * 100}% - 7px)` }}
         />
         {hoverX != null && (
           <div
-            className="pointer-events-none absolute -top-7 -translate-x-1/2 rounded bg-raised px-1.5 py-0.5 text-[10px] text-white"
+            className="pointer-events-none absolute -top-7 -translate-x-1/2 rounded bg-raised px-1.5 py-0.5 text-[10px] text-ink"
             style={{ left: hoverX }}
           >
             {formatTime(hoverTime)}

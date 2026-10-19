@@ -22,12 +22,12 @@ export function useToast() {
 export function ToastViewport() {
   const { toasts } = useToast();
   return (
-    <div className="pointer-events-none fixed bottom-28 right-4 z-[80] flex w-[min(360px,calc(100%-2rem))] flex-col gap-2">
+    <div className="pointer-events-none fixed bottom-[9.5rem] right-4 z-[80] flex w-[min(360px,calc(100%-2rem))] flex-col gap-2 md:bottom-28">
       {toasts.map((t) => (
         <div
           key={t.id}
-          className={`pointer-events-auto rounded-lg px-4 py-3 text-sm shadow-card animate-fade-up ${
-            t.type === 'error' ? 'bg-red-600 text-white' : 'bg-white text-black'
+          className={`pointer-events-auto rounded-xl px-4 py-3 text-sm shadow-card animate-fade-up ${
+            t.type === 'error' ? 'bg-red-600 text-white' : 'bg-accent text-shell font-semibold'
           }`}
         >
           {t.message}

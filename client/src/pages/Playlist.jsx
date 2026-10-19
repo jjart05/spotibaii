@@ -27,6 +27,7 @@ export default function PlaylistPage() {
 
   return (
     <CollectionHeader
+      kind="Playlist"
       title={playlist.name}
       subtitle={`${playlist.description || ''} · ${songs.length} songs`}
       image={playlist.coverUrl}
@@ -55,7 +56,12 @@ export default function PlaylistPage() {
         </div>
       }
     >
-      {songs.length === 0 && <EmptyState title="This playlist is empty." body="Use a song’s menu to add tracks." />}
+      {songs.length === 0 && (
+        <EmptyState
+          title="Walay tracks pa"
+          body="Open a song’s ⋯ menu and choose Add to playlist."
+        />
+      )}
       {songs.map((s, i) => (
         <SongRow
           key={s.id}

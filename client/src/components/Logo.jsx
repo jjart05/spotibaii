@@ -1,11 +1,18 @@
 export function Logo({ compact = false }) {
   return (
-    <div className="flex items-center gap-2.5 text-white">
-      <svg width={compact ? 28 : 32} height={compact ? 28 : 32} viewBox="0 0 32 32" aria-hidden="true">
-        <rect width="32" height="32" rx="9" fill="rgb(var(--accent))" />
-        <path d="M10 22V10l14 6-14 6z" fill="#111" />
+    <div className="flex items-center gap-2.5 text-ink">
+      <svg width={compact ? 28 : 34} height={compact ? 28 : 34} viewBox="0 0 34 34" aria-hidden="true">
+        <rect width="34" height="34" rx="10" fill="rgb(var(--accent))" />
+        <path d="M12 24V10l16 7-16 7z" fill="#000000" />
       </svg>
-      {!compact && <span className="text-xl font-extrabold tracking-tight">Spotibai</span>}
+      {!compact && (
+        <div className="leading-none">
+          <span className="font-display text-xl font-extrabold tracking-tight">Spotibai</span>
+          <div className="mt-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">
+            meme music · PH
+          </div>
+        </div>
+      )}
     </div>
   );
 }

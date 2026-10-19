@@ -7,7 +7,7 @@ export function QueuePanel() {
   if (!queueOpen) return null;
 
   return (
-    <aside className="absolute bottom-[90px] right-0 top-0 z-40 flex w-full max-w-md flex-col border-l border-white/10 bg-panel md:w-[360px]">
+    <aside className="absolute bottom-0 right-0 top-0 z-40 flex w-full max-w-md flex-col border-l border-line bg-panel/95 backdrop-blur-xl md:w-[360px]">
       <div className="flex items-center justify-between px-4 py-4">
         <h2 className="font-bold">Queue</h2>
         <div className="flex gap-2">

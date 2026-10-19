@@ -28,6 +28,7 @@ export function PlayerProvider({ children }) {
   const [queueOpen, setQueueOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const recordedRef = useRef(null);
+  const loadGenRef = useRef(0);
 
   useEffect(() => {
     const audio = new Audio();
@@ -78,6 +79,8 @@ export function PlayerProvider({ children }) {
     async (song, autoplay = true) => {
       const audio = audioRef.current;
       if (!audio || !song) return;
+      // Bump generation so rapid next/prev always wins without delaying audio.
+      const gen = ++loadGenRef.current;
       setCurrent(song);
       setProgress(0);
       setDuration(song.duration || 0);
@@ -86,10 +89,12 @@ export function PlayerProvider({ children }) {
       if (autoplay && settings.autoplay !== false) {
         try {
           await audio.play();
+          if (gen !== loadGenRef.current) return;
         } catch {
-          setPlaying(false);
+          if (gen === loadGenRef.current) setPlaying(false);
         }
       }
+      if (gen !== loadGenRef.current) return;
       if (recordedRef.current !== song.id) {
         recordedRef.current = song.id;
         api.recordPlay(song.id).then(refresh).catch(() => {});

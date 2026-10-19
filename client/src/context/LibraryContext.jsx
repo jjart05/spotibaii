@@ -1,14 +1,17 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { api } from '../services/api.js';
 import { useToast } from './ToastContext.jsx';
+import { applyThemeClass, transitionTheme } from '../utils/themeTransition.js';
 
 const LibraryContext = createContext(null);
 
 const ACCENTS = {
-  green: '31 224 122',
-  teal: '20 210 180',
-  violet: '168 130 255',
-  amber: '255 186 73',
+  green: '30 215 96',
+  mango: '30 215 96', // legacy default → Spotify green
+  coral: '255 90 60',
+  teal: '20 184 166',
+  gold: '234 179 8',
 };
 
 export function LibraryProvider({ children }) {
@@ -24,13 +27,16 @@ export function LibraryProvider({ children }) {
   const [confirm, setConfirm] = useState(null);
   const [settings, setSettings] = useState(() => {
     try {
+      const stored = JSON.parse(localStorage.getItem('spotibai-settings') || '{}');
+      const legacy = { mango: 'green', violet: 'coral', amber: 'gold' };
+      if (legacy[stored.accent]) stored.accent = legacy[stored.accent];
       return {
         theme: 'dark',
         accent: 'green',
         autoplay: true,
         defaultVolume: 0.8,
         crossfade: false,
-        ...JSON.parse(localStorage.getItem('spotibai-settings') || '{}'),
+        ...stored,
       };
     } catch {
       return { theme: 'dark', accent: 'green', autoplay: true, defaultVolume: 0.8, crossfade: false };
@@ -38,10 +44,26 @@ export function LibraryProvider({ children }) {
   });
 
   useEffect(() => {
+    applyThemeClass(settings.theme);
+  }, []);
+
+  useEffect(() => {
     localStorage.setItem('spotibai-settings', JSON.stringify(settings));
-    document.documentElement.style.setProperty('--accent', ACCENTS[settings.accent] || ACCENTS.green);
-    document.body.classList.toggle('theme-light', settings.theme === 'light');
+    const accent = ACCENTS[settings.accent] || ACCENTS.green;
+    document.documentElement.style.setProperty('--accent', accent);
+    document.documentElement.style.setProperty('--surface-glow', accent);
+    applyThemeClass(settings.theme);
   }, [settings]);
+
+  const setTheme = useCallback((theme, opts = {}) => {
+    if (theme !== 'light' && theme !== 'dark') return;
+    if (theme === settings.theme) return;
+    transitionTheme(theme, opts, () => {
+      flushSync(() => {
+        setSettings((s) => ({ ...s, theme }));
+      });
+    });
+  }, [settings.theme]);
 
   const refresh = useCallback(async () => {
     const [s, p, r, h] = await Promise.all([api.songs(), api.playlists(), api.recent(), api.home()]);
@@ -112,6 +134,7 @@ export function LibraryProvider({ children }) {
       setConfirm,
       settings,
       setSettings,
+      setTheme,
     }),
     [
       songs,
@@ -127,6 +150,7 @@ export function LibraryProvider({ children }) {
       addToPlaylistSong,
       confirm,
       settings,
+      setTheme,
     ],
   );
 

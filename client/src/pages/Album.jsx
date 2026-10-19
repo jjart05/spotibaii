@@ -22,6 +22,7 @@ export default function AlbumPage() {
 
   return (
     <CollectionHeader
+      kind="Album"
       title={album.name}
       subtitle={`${album.artist} · ${album.genre} · ${album.trackCount} tracks`}
       image={album.coverUrl}

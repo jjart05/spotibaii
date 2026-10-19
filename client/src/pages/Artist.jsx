@@ -22,6 +22,7 @@ export default function ArtistPage() {
 
   return (
     <CollectionHeader
+      kind="Artist"
       title={artist.name}
       subtitle={`${artist.songs.length} songs`}
       image={artist.coverUrl}

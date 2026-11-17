@@ -1,5 +1,7 @@
 import { localApi } from '../storage/localApi.js';
 
+const SERVER_PROBE_MS = 2500;
+
 async function request(path, options = {}) {
   const res = await fetch(path, options);
   const data = await res.json().catch(() => ({}));
@@ -71,12 +73,19 @@ const serverApi = {
 let resolved;
 
 async function hasServer() {
+  const controller = new AbortController();
+  const timer = window.setTimeout(() => controller.abort(), SERVER_PROBE_MS);
   try {
-    const res = await fetch('/api/home', { headers: { Accept: 'application/json' } });
+    const res = await fetch('/api/home', {
+      headers: { Accept: 'application/json' },
+      signal: controller.signal,
+    });
     const type = res.headers.get('content-type') || '';
     return res.ok && type.includes('application/json');
   } catch {
     return false;
+  } finally {
+    window.clearTimeout(timer);
   }
 }
 
@@ -85,6 +94,11 @@ async function backend() {
     resolved = (await hasServer()) ? serverApi : localApi;
   }
   return resolved;
+}
+
+/** Force a fresh backend probe (e.g. after a failed load retry). */
+export function resetBackendProbe() {
+  resolved = undefined;
 }
 
 export async function getStorageMode() {

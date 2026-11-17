@@ -18,7 +18,7 @@ const TABS = [
 ];
 
 export default function Library() {
-  const { songs, playlists, recent, loading, setUploadOpen } = useLibrary();
+  const { songs, playlists, recent, loading, loadError, setUploadOpen, reloadLibrary } = useLibrary();
   const [params, setParams] = useSearchParams();
   const rawTab = params.get('tab') || 'songs';
   const tab = rawTab === 'all' ? 'songs' : rawTab;
@@ -42,6 +42,25 @@ export default function Library() {
       </div>
     );
   }
+
+  if (loadError) {
+    return (
+      <EmptyState
+        title="Library didn't load"
+        body={loadError}
+        action={
+          <button
+            type="button"
+            onClick={() => reloadLibrary()}
+            className="rounded-full bg-accent px-5 py-2 font-bold text-shell"
+          >
+            Try again
+          </button>
+        }
+      />
+    );
+  }
+
   if (!songs.length) {
     return (
       <EmptyState

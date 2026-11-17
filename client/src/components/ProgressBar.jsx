@@ -20,27 +20,33 @@ export function ProgressBar() {
 
   function start(e) {
     dragging.current = true;
+    if (e.cancelable) e.preventDefault();
     const { time, x, p } = posFromEvent(e);
     seek(time);
     setHoverX(x);
     setHoverTime(time);
     const move = (ev) => {
+      if (ev.cancelable) ev.preventDefault();
       const next = posFromEvent(ev);
       seek(next.time);
       setHoverX(next.x);
       setHoverTime(next.time);
     };
-    const up = () => {
+    const end = () => {
       dragging.current = false;
       window.removeEventListener('mousemove', move);
-      window.removeEventListener('mouseup', up);
+      window.removeEventListener('mouseup', end);
       window.removeEventListener('touchmove', move);
-      window.removeEventListener('touchend', up);
+      window.removeEventListener('touchend', end);
+      window.removeEventListener('touchcancel', end);
+      window.removeEventListener('blur', end);
     };
     window.addEventListener('mousemove', move);
-    window.addEventListener('mouseup', up);
+    window.addEventListener('mouseup', end);
     window.addEventListener('touchmove', move, { passive: false });
-    window.addEventListener('touchend', up);
+    window.addEventListener('touchend', end);
+    window.addEventListener('touchcancel', end);
+    window.addEventListener('blur', end);
     void p;
   }
 
@@ -49,7 +55,7 @@ export function ProgressBar() {
       <span className="w-10 text-right tabular-nums">{formatTime(progress)}</span>
       <div
         ref={barRef}
-        className="group relative h-4 flex-1 cursor-pointer"
+        className="group relative h-4 flex-1 cursor-pointer touch-none"
         onMouseDown={start}
         onTouchStart={start}
         onMouseMove={(e) => {

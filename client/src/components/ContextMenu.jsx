@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { Heart, ListPlus, ListMusic, Play, Trash2, User, Disc3 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { usePlayer } from '../context/PlayerContext.jsx';
@@ -10,6 +10,7 @@ export function ContextMenu({ song, list, x, y, onClose }) {
   const { toggleLike, setAddToPlaylistSong, setConfirm } = useLibrary();
   const ref = useRef(null);
   const [pos, setPos] = useState({ x, y });
+  const labelId = useId();
 
   useEffect(() => {
     const el = ref.current;
@@ -22,19 +23,66 @@ export function ContextMenu({ song, list, x, y, onClose }) {
   }, [x, y]);
 
   useEffect(() => {
+    const menu = ref.current;
+    const previouslyFocused = document.activeElement;
+    const items = () => [...(menu?.querySelectorAll('[role="menuitem"]') || [])];
+
+    const focusAt = (index) => {
+      const nodes = items();
+      if (!nodes.length) return;
+      const i = ((index % nodes.length) + nodes.length) % nodes.length;
+      nodes[i]?.focus();
+    };
+
+    window.setTimeout(() => focusAt(0), 0);
+
+    const onKey = (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        onClose();
+        return;
+      }
+      const nodes = items();
+      if (!nodes.length) return;
+      const current = nodes.indexOf(document.activeElement);
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        focusAt(current < 0 ? 0 : current + 1);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        focusAt(current < 0 ? nodes.length - 1 : current - 1);
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        focusAt(0);
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        focusAt(nodes.length - 1);
+      } else if (e.key === 'Tab') {
+        e.preventDefault();
+        onClose();
+      }
+    };
+
     const close = () => onClose();
+    window.addEventListener('keydown', onKey);
     window.addEventListener('click', close);
     window.addEventListener('scroll', close, true);
     return () => {
+      window.removeEventListener('keydown', onKey);
       window.removeEventListener('click', close);
       window.removeEventListener('scroll', close, true);
+      if (previouslyFocused && typeof previouslyFocused.focus === 'function') {
+        previouslyFocused.focus();
+      }
     };
   }, [onClose]);
 
   const item = (icon, label, fn, danger) => (
     <button
       type="button"
-      className={`flex w-full items-center gap-3 px-3 py-2 text-left text-sm hover:bg-hover ${danger ? 'text-red-400' : ''}`}
+      role="menuitem"
+      className={`flex w-full items-center gap-3 px-3 py-2 text-left text-sm hover:bg-hover focus-visible:bg-hover ${danger ? 'text-red-400' : ''}`}
       onClick={(e) => {
         e.stopPropagation();
         fn();
@@ -49,23 +97,35 @@ export function ContextMenu({ song, list, x, y, onClose }) {
   return (
     <div
       ref={ref}
+      role="menu"
+      aria-labelledby={labelId}
       className="fixed z-[90] min-w-[220px] overflow-hidden rounded-xl border border-line bg-panel py-1 shadow-card"
       style={{ left: pos.x, top: pos.y }}
       onClick={(e) => e.stopPropagation()}
     >
+      <span id={labelId} className="sr-only">
+        Actions for {song.title}
+      </span>
       {item(<Play className="h-4 w-4" />, 'Play', () => playSong(song, list))}
       {item(<ListMusic className="h-4 w-4" />, 'Add to queue', () => addToQueue(song))}
       {item(<ListPlus className="h-4 w-4" />, 'Play next', () => playNext(song))}
       {item(<Heart className="h-4 w-4" />, song.liked ? 'Unlike' : 'Like', () => toggleLike(song))}
       {item(<ListPlus className="h-4 w-4" />, 'Add to playlist', () => setAddToPlaylistSong(song))}
-      {item(<Disc3 className="h-4 w-4" />, 'View album', () => nav(`/album/${encodeURIComponent(song.album)}?artist=${encodeURIComponent(song.artist)}`))}
+      {item(<Disc3 className="h-4 w-4" />, 'View album', () =>
+        nav(`/album/${encodeURIComponent(song.album)}?artist=${encodeURIComponent(song.artist)}`),
+      )}
       {item(<User className="h-4 w-4" />, 'View artist', () => nav(`/artist/${encodeURIComponent(song.artist)}`))}
-      {item(<Trash2 className="h-4 w-4" />, 'Delete', () =>
-        setConfirm({
-          title: 'Delete song?',
-          body: `“${song.title}” will be removed from your library and files will be deleted.`,
-          songId: song.id,
-        }), true)}
+      {item(
+        <Trash2 className="h-4 w-4" />,
+        'Delete',
+        () =>
+          setConfirm({
+            title: 'Delete song?',
+            body: `“${song.title}” will be removed from your library and files will be deleted.`,
+            songId: song.id,
+          }),
+        true,
+      )}
     </div>
   );
 }

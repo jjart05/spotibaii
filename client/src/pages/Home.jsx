@@ -11,7 +11,7 @@ import { filterByLanguage, LANGUAGE_CHIPS } from '../utils/language.js';
 import { usePlayer } from '../context/PlayerContext.jsx';
 
 export default function Home() {
-  const { home, loading, setUploadOpen, songs } = useLibrary();
+  const { home, loading, loadError, setUploadOpen, songs, reloadLibrary } = useLibrary();
   const { playSong } = usePlayer();
   const [lang, setLang] = useState('all');
 
@@ -46,6 +46,24 @@ export default function Home() {
   const filteredAdded = useMemo(() => filterByLanguage(home?.recent || [], lang), [home, lang]);
 
   if (loading) return <SectionSkeleton />;
+
+  if (loadError) {
+    return (
+      <EmptyState
+        title="Library didn't load"
+        body={loadError}
+        action={
+          <button
+            type="button"
+            onClick={() => reloadLibrary()}
+            className="inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 font-bold text-shell"
+          >
+            Try again
+          </button>
+        }
+      />
+    );
+  }
 
   if (!home?.totalSongs) {
     return (

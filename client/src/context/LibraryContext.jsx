@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { flushSync } from 'react-dom';
-import { api } from '../services/api.js';
+import { api, resetBackendProbe } from '../services/api.js';
 import { useToast } from './ToastContext.jsx';
 import { applyThemeClass, transitionTheme } from '../utils/themeTransition.js';
 
@@ -21,6 +21,7 @@ export function LibraryProvider({ children }) {
   const [recent, setRecent] = useState([]);
   const [home, setHome] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
   const [uploadOpen, setUploadOpen] = useState(false);
   const [playlistModal, setPlaylistModal] = useState(null);
   const [addToPlaylistSong, setAddToPlaylistSong] = useState(null);
@@ -66,6 +67,7 @@ export function LibraryProvider({ children }) {
   }, [settings.theme]);
 
   const refresh = useCallback(async () => {
+    setLoadError(null);
     const [s, p, r, h] = await Promise.all([api.songs(), api.playlists(), api.recent(), api.home()]);
     setSongs(s);
     setPlaylists(p);
@@ -73,10 +75,40 @@ export function LibraryProvider({ children }) {
     setHome(h);
   }, []);
 
+  const reloadLibrary = useCallback(async () => {
+    setLoading(true);
+    setLoadError(null);
+    resetBackendProbe();
+    try {
+      await refresh();
+    } catch (err) {
+      const message = err?.message || 'Unable to load your library.';
+      setLoadError(message);
+      push(message, 'error');
+    } finally {
+      setLoading(false);
+    }
+  }, [refresh, push]);
+
   useEffect(() => {
-    refresh()
-      .catch(() => push('Unable to load your library.', 'error'))
-      .finally(() => setLoading(false));
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      setLoadError(null);
+      try {
+        await refresh();
+      } catch (err) {
+        if (cancelled) return;
+        const message = err?.message || 'Unable to load your library.';
+        setLoadError(message);
+        push(message, 'error');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [refresh, push]);
 
   const patchSong = useCallback((id, patch) => {
@@ -121,7 +153,9 @@ export function LibraryProvider({ children }) {
       recent,
       home,
       loading,
+      loadError,
       refresh,
+      reloadLibrary,
       toggleLike,
       patchSong,
       uploadOpen,
@@ -142,7 +176,9 @@ export function LibraryProvider({ children }) {
       recent,
       home,
       loading,
+      loadError,
       refresh,
+      reloadLibrary,
       toggleLike,
       patchSong,
       uploadOpen,
